@@ -1,33 +1,29 @@
-import '../models/mahasiswa_model.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:tes/features/mahasiswa/data/models/mahasiswa_model.dart';
 
 class MahasiswaRepository {
 
   Future<List<MahasiswaModel>> getMahasiswaList() async {
+    final response = await http.get(
+      Uri.parse('https://jsonplaceholder.typicode.com/comments'),
+      headers: {
+        'Accept': 'application/json',
+      },
+    );
 
-    await Future.delayed(const Duration(seconds: 1));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
 
-    return [
-      MahasiswaModel(
-        nama: 'Aldi Pratama',
-        nim: '220810101',
-        email: 'aldi.pratama@email.com',
-        jurusan: 'Teknik Informatika',
-        semester: 4,
-      ),
-      MahasiswaModel(
-        nama: 'Budi Santoso',
-        nim: '220810102',
-        email: 'budi.santoso@email.com',
-        jurusan: 'Teknik Informatika',
-        semester: 6,
-      ),
-      MahasiswaModel(
-        nama: 'Citra Dewi',
-        nim: '220810103',
-        email: 'citra.dewi@email.com',
-        jurusan: 'Teknik Informatika',
-        semester: 2,
-      ),
-    ];
+      // Debug
+      print(data);
+
+      return data
+          .map((json) => MahasiswaModel.fromJson(json))
+          .toList();
+    } else {
+      print('Error: ${response.statusCode} - ${response.body}');
+      throw Exception('Gagal memuat data mahasiswa');
+    }
   }
 }

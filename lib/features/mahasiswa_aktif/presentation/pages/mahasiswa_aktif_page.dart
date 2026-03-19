@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tes/core/widgets/widgets.dart';
 
+import '../../../../core/widgets/widgets.dart';
 import '../providers/mahasiswa_aktif_provider.dart';
 import '../widgets/mahasiswa_aktif_widget.dart';
 
@@ -10,41 +10,35 @@ class MahasiswaAktifPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(mahasiswaAktifNotifierProvider);
 
-    final mahasiswaState = ref.watch(mahasiswaAktifNotifierProvider);
+    void refresh() {
+      ref.invalidate(mahasiswaAktifNotifierProvider);
+    }
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mahasiswa Aktif'),
+        title: const Text("Mahasiswa Aktif"),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.invalidate(mahasiswaAktifNotifierProvider);
-            },
-          )
+            onPressed: refresh,
+          ),
         ],
       ),
 
-      body: mahasiswaState.when(
-
+      body: state.when(
         loading: () => const LoadingWidget(),
 
         error: (error, stack) => CustomErrorWidget(
           message: error.toString(),
-          onRetry: () {
-            ref.read(mahasiswaAktifNotifierProvider.notifier).refresh();
-          },
+          onRetry: refresh,
         ),
 
-        data: (mahasiswaList) {
-          return MahasiswaAktifListView(
-            mahasiswaList: mahasiswaList,
-            onRefresh: () {
-              ref.invalidate(mahasiswaAktifNotifierProvider);
-            },
-          );
-        },
+        data: (dataList) => MahasiswaAktifListView(
+          dataList: dataList,
+          onRefresh: refresh,
+        ),
       ),
     );
   }

@@ -1,33 +1,34 @@
+import 'package:dio/dio.dart';
 import 'package:tes/features/dosen/data/models/dosen_model.dart';
 
 class DosenRepository {
+  final Dio _dio = Dio();
 
-  /// Mendapatkan daftar dosen
+  /// Mendapatkan daftar dosen dari API
   Future<List<DosenModel>> getDosenList() async {
+    final response = await _dio.get(
+      'https://jsonplaceholder.typicode.com/users',
+      options: Options(
+        headers: {
+          'Accept': 'application/json',
+        },
+      ),
+    );
 
-    /// Simulasi network delay
-    await Future.delayed(const Duration(seconds: 1));
+    if (response.statusCode == 200) {
+      final List<dynamic> data = response.data;
 
-    /// Data dummy dosen
-    return [
-      DosenModel(
-        nama: 'Anank Prasetyo',
-        nip: '123456789',
-        email: 'anank.prasetyo@example.com',
-        jurusan: 'Teknik Informatika',
-      ),
-      DosenModel(
-        nama: 'Rachman Sinatriya',
-        nip: '987654321',
-        email: 'rachman.sinatriya@example.com',
-        jurusan: 'Teknik Informatika',
-      ),
-      DosenModel(
-        nama: 'Alfian Sukma',
-        nip: '456789123',
-        email: 'alfian.sukma@example.com',
-        jurusan: 'Teknik Informatika',
-      ),
-    ];
+      // Debug (opsional)
+      print(data);
+
+      return data
+          .map((json) => DosenModel.fromJson(json))
+          .toList();
+    } else {
+      print('Error: ${response.statusCode} - ${response.data}');
+      throw Exception(
+        'Gagal memuat data dosen: ${response.statusCode}',
+      );
+    }
   }
 }

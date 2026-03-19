@@ -1,42 +1,27 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../data/models/mahasiswa_aktif_model.dart';
-import '../../data/repositories/mahasiswa_aktif_repository.dart';
+import 'package:tes/features/mahasiswa_aktif/data/models/mahasiswa_aktif_model.dart';
+import 'package:tes/features/mahasiswa_aktif/data/repositories/mahasiswa_aktif_repository.dart';
 
-final mahasiswaAktifRepositoryProvider =
-Provider<MahasiswaAktifRepository>((ref) {
-  return MahasiswaAktifRepository();
-});
+final mahasiswaAktifNotifierProvider =
+AsyncNotifierProvider<MahasiswaAktifNotifier, List<MahasiswaAktifModel>>(
+  MahasiswaAktifNotifier.new,
+);
 
 class MahasiswaAktifNotifier
-    extends StateNotifier<AsyncValue<List<MahasiswaAktifModel>>> {
+    extends AsyncNotifier<List<MahasiswaAktifModel>> {
 
-  final MahasiswaAktifRepository _repository;
-
-  MahasiswaAktifNotifier(this._repository)
-      : super(const AsyncValue.loading()) {
-    loadMahasiswaAktif();
+  @override
+  Future<List<MahasiswaAktifModel>> build() async {
+    return _fetchData();
   }
 
-  Future<void> loadMahasiswaAktif() async {
-    state = const AsyncValue.loading();
-    try {
-      final data = await _repository.getMahasiswaAktifList();
-      state = AsyncValue.data(data);
-    } catch (error, stackTrace) {
-      state = AsyncValue.error(error, stackTrace);
-    }
+  Future<List<MahasiswaAktifModel>> _fetchData() async {
+    final repo = MahasiswaAktifRepository();
+    return await repo.getMahasiswaAktifList();
   }
 
   Future<void> refresh() async {
-    await loadMahasiswaAktif();
+    state = const AsyncLoading();
+    state = await AsyncValue.guard(() => _fetchData());
   }
 }
-
-final mahasiswaAktifNotifierProvider =
-StateNotifierProvider.autoDispose<
-    MahasiswaAktifNotifier,
-    AsyncValue<List<MahasiswaAktifModel>>>((ref) {
-
-  final repository = ref.watch(mahasiswaAktifRepositoryProvider);
-  return MahasiswaAktifNotifier(repository);
-});

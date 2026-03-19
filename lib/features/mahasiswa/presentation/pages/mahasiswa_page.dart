@@ -10,8 +10,11 @@ class MahasiswaPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final mahasiswaState = ref.watch(mahasiswaNotifierProvider);
+
+    void refresh() {
+      ref.invalidate(mahasiswaNotifierProvider);
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -19,32 +22,23 @@ class MahasiswaPage extends ConsumerWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            onPressed: () {
-              ref.invalidate(mahasiswaNotifierProvider);
-            },
-          )
+            onPressed: refresh,
+          ),
         ],
       ),
 
       body: mahasiswaState.when(
-
         loading: () => const LoadingWidget(),
 
         error: (error, stack) => CustomErrorWidget(
           message: error.toString(),
-          onRetry: () {
-            ref.read(mahasiswaNotifierProvider.notifier).refresh();
-          },
+          onRetry: refresh,
         ),
 
-        data: (mahasiswaList) {
-          return MahasiswaListView(
-            mahasiswaList: mahasiswaList,
-            onRefresh: () {
-              ref.invalidate(mahasiswaNotifierProvider);
-            },
-          );
-        },
+        data: (mahasiswaList) => MahasiswaListView(
+          mahasiswaList: mahasiswaList,
+          onRefresh: refresh,
+        ),
       ),
     );
   }
